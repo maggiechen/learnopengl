@@ -7,6 +7,7 @@
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void ValidateShader(unsigned int vertexShader);
 void processInput(GLFWwindow* window);
 
 class GettingStarted

@@ -1,6 +1,24 @@
 #include "GettingStarted.h" // see header file for where we include GLAD and GLFW
 #include <iostream>
 
+void ValidateShader(const unsigned int shaderId)
+{
+	int success;
+	char infoLog[512];
+	// gets info on a shader. 2nd param is what kind of info you want to get on the shader
+	// all params after that are specific to what the 2nd param was. In this case we need
+	// to pass a ref to an int so that the compile status can be stored there
+	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		// Each shader has an info log. To get the log of the shader, call this function
+		// 2nd param is the size of the buffer we want it to write log info to.
+		// 3rd param is where the full size of the info log should be stored to (optional)
+		// 4th param is pointer to the buffer.
+		glGetShaderInfoLog(shaderId, 512, NULL, infoLog);
+	}
+}
+
 int main()
 {
 	// SETUP
@@ -46,6 +64,108 @@ int main()
 	// this is also called the first time window is displayed
 	// * for retina displays, the actual width/height will be higher than the original input values to glViewport
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	float vertices[] = {
+	-0.5f, -0.5f, 0.0f,
+	 0.5f, -0.5f, 0.0f,
+	 0.0f,  0.5f, 0.0f
+	};
+
+	// VBOs (Vertex Buffer Objects) are an OpenGL object that let you send large amount of data from CPU to GPU, without having to send it one vertex at a time. OpenGL objects have a unique ID, and these IDs are generated for VBOs like so:
+
+	unsigned int VBO;
+
+	// INSTANTIATE A BUFFER
+	// params are:
+	// number of buffers you want to generate
+	// address of array of buffer IDs (unsigned ints) that will be populated
+	glGenBuffers(1, &VBO);
+	// since we only want one, we just give it the address of a single unsigned int
+
+	// BIND THE BUFFER TO A BUFFER_TYPE
+	// the buffer now exists, but you need to tie it to one of the buffer types
+	// one and only one buffer may be assigned to each buffer type
+	glBindBuffer(GL_ARRAY_BUFFER, VBO); // assign the buffer with buffer ID VBO to the buffer type GL_ARRAY_BUFFER
+	// from now on any buffer calls made to GL_ARRAY_BUFFER will use the instantiated buffer identified by VBO
+
+	// WRITE THE DATA TO THE BOUND BUFFER THROUGH THE BUFFER TYPE
+	// this says to write memory into the buffer bound to GL_ARRAY_BUFFER,
+	// the number of bytes is specified by the 2nd param, and a pointer to the memory
+	// is given as the 3rd param.
+	// GL_STATIC_DRAW is a usage type, saying that we want to set this data and have it
+	// be used by the GPU many times
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// other options are GL_DYNAMIC_DRAW, where data will change and is used by GPU many times
+	// and GL_STREAM_DRAW, where it doesn't change and is used only a few times
+
+	// SAVE VERTEX SHADER TO A STRING
+	// set up a very basic vert shader that takes a vertex and returns it unchanged
+	const char* vertexShaderSource = "#version 330 core\n"
+		"layout (location = 0) in vec3 aPos;\n"
+		"void main()\n"
+		"{\n"
+		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+		"}\0";
+
+	// INSTANTIATE THE SHADER
+	// shaders are also OpenGL objects. This function instantiates one and returns
+	// its OpenGL object ID. It returns 0 if an error occurred. The parameter to the
+	// function is the type of shader you want to create
+	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+	// SET THE SHADER'S CODE TO THE VERTEX SHADER STRING
+	// 2nd param is the # of strings we want to pass. We only have one shader so pass 1
+	// 3rd param is an array of strings holding the source code(s). We only have one.
+	// Recall that using &some_pointer is the same as the type for an array of that pointer
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+
+	// CHECK THAT THE SHADER COMPILES
+	ValidateShader(vertexShader);
+
+	const char* fragmentShaderSource = "#version 330 core\n"
+		"out vec4 FragColor;\n"
+		"void main()\n"
+		"{\n"
+		"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+		"}\0";
+
+	// INSTANTIATE FRAGMENT SHADER
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	ValidateShader(fragmentShader);
+
+	// CREATE A PROGRAM, WHICH IS A SPECIFICATION OF ALL THE SHADERS YOU WANT TO RUN
+	unsigned int shaderProgram;
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader); // can only add one shader of each shader type
+	glLinkProgram(shaderProgram); // this step links the attached shaders together and makes sure their inputs and outputs match. It will fail if they don't
+
+	// VALIDATE THE PROGRAM
+	// very similar to the way we validate shaders
+	int success;
+	char infoLog[512];
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+	}
+
+	// ACTIVATE THE PROGRAM
+	glUseProgram(shaderProgram);
+	// every shader and render call will now use this program object
+
+	// CLEANUP
+	// once you link shader objects to programs, you don't need them anymore
+	// this deallocs memory used for the shader object
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+	// BOOKMARK: "Linking Vertex Attributes"
 
 	// RENDER LOOP
 	while (!glfwWindowShouldClose(window)) // result will be true if window was closed
