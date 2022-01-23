@@ -1,7 +1,7 @@
 #include "GettingStarted.h" // see header file for where we include GLAD and GLFW
 #include <iostream>
 
-void ValidateShader(const unsigned int shaderId)
+void GettingStarted::ValidateShader(const unsigned int shaderId)
 {
 	int success;
 	char infoLog[512];
@@ -21,6 +21,12 @@ void ValidateShader(const unsigned int shaderId)
 
 int main()
 {
+	GettingStarted g;
+	int ret = g.mainImplRectangleWithEBO();
+	return ret;
+}
+
+int GettingStarted::mainImplTriangleWithVBO() {
 	// SETUP
 	glfwInit();
 
@@ -33,7 +39,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(m_windowWidth, m_windowHeight, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -55,7 +61,7 @@ int main()
 
 	// this tells OpenGL the dimensions of the rendering window. The previous usage of these
 	// dimensions was just to tell GLFW to make the window that size. 
-	glViewport(0, 0, 800, 600); // The first two params set the location of the lower left corner of the window. The last two set the upper right.
+	glViewport(0, 0, m_windowWidth, m_windowHeight); // The first two params set the location of the lower left corner of the window. The last two set the upper right.
 	// This is used to map the normalized device coords (-1 to 1) to screen coords (shifted to the location of your window)
 
 	// setting the GL viewport smaller than the glfw window means we have empty space that can be used to display other elements outside of the viewport
@@ -98,6 +104,123 @@ int main()
 
 	// other options are GL_DYNAMIC_DRAW, where data will change and is used by GPU many times
 	// and GL_STREAM_DRAW, where it doesn't change and is used only a few times
+
+
+	unsigned int shaderProgram = createBasicShaderProgram();
+
+
+	// BOOKMARK: "Linking Vertex Attributes"
+	// recall: vertex attribute = data about one particular vertex
+	// we only define one vertex attribute, aPos
+	// but we've only given openGL an array, and we haven't told it how that array maps into a list of aPos values
+
+	// Call glVertexAttribPointer, which will inform openGL about one of the vertex attributes, in this case aPos.
+	// (Each parameter will be named and described)
+	// This method will use whichever Vertex Buffer Object is currently bound to GL_ARRAY_BUFFER, which in our case is the previously declared local, VBO
+	glVertexAttribPointer(
+		0,
+		// index: in our vertex shader we set the aPos vertex attribute to be at "layout (location 0)"
+		// which means we need to tell openGL to interpret the location 0 of the vertices we pass
+		// in the buffer as the aPos vertex attribute
+		3,
+		// size: size of the vertex attribute in terms of how many values is in it. The vector contains 3 values, so size is 3
+		// note this is NOT the size in bytes. That is accounted for in the next parameters
+		GL_FLOAT,
+		// type: the type of the values. Each of the x, y, and z components in the vector are floats
+		GL_FALSE,
+		// normalized: Whether we want the values to be normalized. If instead of floats we used ints, the ints
+		// would be normalized to 0 and 1 (unsigned) or -1 and 1 (signed). This is irrelevant for us, so leave as false
+		3 * sizeof(float),
+		// stride: The space between consecutive vertex attributes. Since all the positions are tightly packed, because
+		// we have no other vertex attributes (e.g. color), the stride is just the size of a vertex in bytes. If there
+		// were other vertex attributes we'd have to add their sizes to this value
+		(void*)0
+		// offset: Where the position data begins in the buffer. Our vector attributes start right at the first index in the array so
+		// this is 0. The parameter type is a void* so we have to cast it.
+		// Side note: ugh!! It's a C style cast? And into a void pointer?! Gross!!
+	);
+
+	// Vertex attributes are disabled by default. We need to enable them using their location. aPos is at location 0
+	glEnableVertexAttribArray(0); // pass location 0
+
+
+	// VERTEX ARRAY OBJECTS (VAO)
+	// The way we've bound our buffer + configured the vertex attributes, we need to do it for every frame.
+	// This is cumbersome and expensive. Instead we want to store buffer state into an object
+	// and simply bind that object to some OpenGL object ID
+	// VAO is the persistent version of VBO. You can refer to a VAO instead of rebinding a VBO every single frame. To change data you can just switch between VAO IDs
+
+	// A VAO stores:
+	//		calls to glEnableVertexAttribArray + glDisableVertexAttribArray (used to toggle on/off vertex attributes)
+	//		calls to glVertexAttribPointer for vertex attribute configurations
+	//		VBOs containing a list of all the vertex attributes being configured.
+	//			These are the equivalent of the VBO we made earlier, but expanded out into a list of attributes rather than a list of vertices
+
+	// They're basically a special buffer designed specifically for vertices
+
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO); // binds the VAO. Now all calls on VBO, glVertexAttribPointer, and glEnableVertexAttribArray will write to the VAO
+
+	// rebind VBO and configure its vertex attributes. We repeat this so that it gets written into the now-bound VAO
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// RENDER LOOP
+	while (!glfwWindowShouldClose(window)) // result will be true if window was closed
+	{
+		processInput(window);
+
+		// rendering commands here
+		// ...
+		// you have to clear the frame at the start of the render loop or the previous
+		// render result will stay on screen
+
+		// set default color that should be used when you clear a buffer
+		// this is a "state-setting function" in that it sets some property of the giant
+		// state object holding the preferences of OpenGL
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		// clear the color buffer specifically (there's also the depth buffer and stencil buffer)
+		// this is a "state-using function" that uses a value we just set to do some action
+		glClear(GL_COLOR_BUFFER_BIT);
+
+
+		// ACTIVATE THE PROGRAM
+		glUseProgram(shaderProgram);
+		// every shader and render call will now use this program object
+
+		// bind the VAO for this frame
+		glBindVertexArray(VAO);
+
+		// actual command to draw the triangle
+		glDrawArrays(
+			GL_TRIANGLES, // the primitive we wish to drawy
+			0, // starting index of the vertex array we'd like to draw
+			3 // how many vertices we want to draw
+		);
+
+		// check for keyboard/mouse movements, updates window state, calls any callback methods that were registered
+		glfwPollEvents();
+
+		// the color buffer is a large 2D buffer w/ colors for each pixel in GLFW's window
+		// this is the front buffer as it's displayed to the user
+		// there's also a back buffer that is filled out by the current render iteration
+		// this call will swap the front and back buffers,
+		// resulting in the new frame being shown as output on the screen
+		// doing it w/ 2 buffers is better than 1 buffer bc 1 buffer results in screen tearing,
+		// bc the pixels are written to from left to right, top to bottom.
+		glfwSwapBuffers(window);
+	}
+
+	glfwTerminate(); // remember to clean up
+	return 0;
+
+}
+
+
+unsigned int GettingStarted::createBasicShaderProgram() {
 
 	// SAVE VERTEX SHADER TO A STRING
 	// set up a very basic vert shader that takes a vertex and returns it unchanged
@@ -155,66 +278,125 @@ int main()
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 	}
 
-	// ACTIVATE THE PROGRAM
-	glUseProgram(shaderProgram);
-	// every shader and render call will now use this program object
-
 	// CLEANUP
 	// once you link shader objects to programs, you don't need them anymore
 	// this deallocs memory used for the shader object
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-
-	// BOOKMARK: "Linking Vertex Attributes"
-
-	// RENDER LOOP
-	while (!glfwWindowShouldClose(window)) // result will be true if window was closed
-	{
-		processInput(window);
-
-		// rendering commands here
-		// ...
-		// you have to clear the frame at the start of the render loop or the previous
-		// render result will stay on screen
-
-		// set default color that should be used when you clear a buffer
-		// this is a "state-setting function" in that it sets some property of the giant
-		// state object holding the preferences of OpenGL
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		// clear the color buffer specifically (there's also the depth buffer and stencil buffer)
-		// this is a "state-using function" that uses a value we just set to do some action
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// check for keyboard/mouse movements, updates window state, calls any callback methods that were registered
-		glfwPollEvents();
-
-		// the color buffer is a large 2D buffer w/ colors for each pixel in GLFW's window
-		// this is the front buffer as it's displayed to the user
-		// there's also a back buffer that is filled out by the current render iteration
-		// this call will swap the front and back buffers,
-		// resulting in the new frame being shown as output on the screen
-		// doing it w/ 2 buffers is better than 1 buffer bc 1 buffer results in screen tearing,
-		// bc the pixels are written to from left to right, top to bottom.
-		glfwSwapBuffers(window);
-	}
-
-	glfwTerminate(); // remember to clean up
-	return 0;
+	return shaderProgram;
 
 }
 
-
 // callback for when window is resized by user. The width and height are the new dimensions
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void GettingStarted::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 	// tell OpenGL to update the scaling parameters used to convert from normalized screen coords to screen coords
 }
 
-void processInput(GLFWwindow* window)
+void GettingStarted::processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
+}
+
+/// <summary>
+/// Specifying every triangle means specifying duplicated vertices if you just want to draw n-gons.
+/// Element Buffer Objects (EBOs) let you specify vertices in an array, then use indexes into that array
+/// to specify primitives for those n-gons. Such an example of a more-complex-than-a-triangle primitive is
+/// a rectangle
+/// </summary>
+int GettingStarted::mainImplRectangleWithEBO() {
+	glfwInit(); // setup window
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // using core OpenGL
+	GLFWwindow* window = glfwCreateWindow(m_windowWidth, m_windowHeight, "Rectango", NULL, NULL);
+	if (window == NULL) {
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	glViewport(0, 0, m_windowWidth, m_windowHeight);
+
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	
+	float vertices[] = {
+	 0.5f,  0.5f, 0.0f,  // top right
+	 0.5f, -0.5f, 0.0f,  // bottom right
+	-0.5f, -0.5f, 0.0f,  // bottom left
+	-0.5f,  0.5f, 0.0f   // top left 
+	};
+	unsigned int indices[] = {  // note that we start from 0!
+		0, 1, 3,   // first triangle
+		1, 2, 3    // second triangle
+	};
+
+	unsigned int shaderProgram = createBasicShaderProgram();
+
+	// initialize a VAO
+	// VAOs also store element buffers. If after binding this VAO, GL_ELEMENT_ARRAY_BUFFER is bound, 
+	// and an EBO is written to, then that EBO will also be stored to this VAO
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	
+	// create vertex buffer
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// create element buffer
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// the vertex buffer itself remains unchanged, we are just using the element buffer to specify primitives instead
+	// so this call is the same as in mainImplTriangleWithVBO
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0); // enable the vertex attribute at location 0
+	
+	while (!glfwWindowShouldClose(window))
+	{
+		processInput(window);
+		glClearColor(0.3f, 0.6f, 0.1f, 1.0f); // set color used when clearing
+		glClear(GL_COLOR_BUFFER_BIT); // clear
+
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO); // bind the VAO that points to the EBO to use its vertex attribute config
+
+		// make it draw a wireframe (can revert with GL_FILL instead of GL_LINE afterwards)
+		glPolygonMode(
+			GL_FRONT_AND_BACK, // we want to apply this polygon drawing mode to front and back of triangles
+			GL_LINE // draw with lines, not filled shapes
+		);
+
+		// draw the elements in the buffer bound to GL_ELEMENT_ARRAY_BUFFER
+		glDrawElements(
+			GL_TRIANGLES, // the primitive we wish to draw
+			sizeof(indices), // number of elements in the EBO we want to consider when drawing
+							 // the number of triangles drawn will be this number divided by 3
+			GL_UNSIGNED_INT, // the type of each element in indices, now living in an element buffer
+			0 // index in indices to start reading from when drawing
+		);
+
+		glfwPollEvents();
+		glfwSwapBuffers(window);
+
+	}
+
+	glfwTerminate();
+	return 0;
 }
