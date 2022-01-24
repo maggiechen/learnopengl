@@ -1,5 +1,5 @@
 #include "GettingStarted.h" // see header file for where we include GLAD and GLFW
-#include <iostream>
+
 
 void GettingStarted::ValidateShader(const unsigned int shaderId)
 {
@@ -22,7 +22,7 @@ void GettingStarted::ValidateShader(const unsigned int shaderId)
 int main()
 {
 	GettingStarted g;
-	int ret = g.mainImplRectangleWithEBO();
+	int ret = g.mainImplTriangleWithVBO();
 	return ret;
 }
 
@@ -71,27 +71,41 @@ int GettingStarted::mainImplTriangleWithVBO() {
 	// * for retina displays, the actual width/height will be higher than the original input values to glViewport
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	float vertices[] = {
+	// single triangle
+	/*float vertices[] = {
 	-0.5f, -0.5f, 0.0f,
 	 0.5f, -0.5f, 0.0f,
 	 0.0f,  0.5f, 0.0f
+	};*/
+
+	float vertices1[] = {
+	 -0.9f, 0.2f, 0.0f,
+	 -0.1f, 0.2f, 0.0f,
+	 -0.5f,  0.8f, 0.0f,
+	};
+
+	float vertices2[] = {
+		0.1f, -0.8f, 0.0f,
+		0.9f, -0.8f, 0.0f,
+		0.5f, -0.2f, 0.0f
 	};
 
 	// VBOs (Vertex Buffer Objects) are an OpenGL object that let you send large amount of data from CPU to GPU, without having to send it one vertex at a time. OpenGL objects have a unique ID, and these IDs are generated for VBOs like so:
 
-	unsigned int VBO;
+	// one VBO per triangle
+	unsigned int VBOs[2];
 
 	// INSTANTIATE A BUFFER
 	// params are:
 	// number of buffers you want to generate
 	// address of array of buffer IDs (unsigned ints) that will be populated
-	glGenBuffers(1, &VBO);
+	glGenBuffers(2, VBOs);
 	// since we only want one, we just give it the address of a single unsigned int
 
 	// BIND THE BUFFER TO A BUFFER_TYPE
 	// the buffer now exists, but you need to tie it to one of the buffer types
 	// one and only one buffer may be assigned to each buffer type
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); // assign the buffer with buffer ID VBO to the buffer type GL_ARRAY_BUFFER
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]); // assign the buffer with buffer ID VBO to the buffer type GL_ARRAY_BUFFER
 	// from now on any buffer calls made to GL_ARRAY_BUFFER will use the instantiated buffer identified by VBO
 
 	// WRITE THE DATA TO THE BOUND BUFFER THROUGH THE BUFFER TYPE
@@ -100,14 +114,14 @@ int GettingStarted::mainImplTriangleWithVBO() {
 	// is given as the 3rd param.
 	// GL_STATIC_DRAW is a usage type, saying that we want to set this data and have it
 	// be used by the GPU many times
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
 	// other options are GL_DYNAMIC_DRAW, where data will change and is used by GPU many times
 	// and GL_STREAM_DRAW, where it doesn't change and is used only a few times
 
-
+	// orange program
 	unsigned int shaderProgram = createBasicShaderProgram();
-
+	unsigned int yellowShaderProgram = createBasicShaderProgram("1.0f, 1.5f, 0.2f, 1.0f");
 
 	// BOOKMARK: "Linking Vertex Attributes"
 	// recall: vertex attribute = data about one particular vertex
@@ -158,13 +172,19 @@ int GettingStarted::mainImplTriangleWithVBO() {
 
 	// They're basically a special buffer designed specifically for vertices
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO); // binds the VAO. Now all calls on VBO, glVertexAttribPointer, and glEnableVertexAttribArray will write to the VAO
+	unsigned int VAOs[2];
+	glGenVertexArrays(2, VAOs);
+	glBindVertexArray(VAOs[0]); // binds the VAO. Now all calls on VBO, glVertexAttribPointer, and glEnableVertexAttribArray will write to the VAO
 
 	// rebind VBO and configure its vertex attributes. We repeat this so that it gets written into the now-bound VAO
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(VAOs[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
@@ -192,14 +212,18 @@ int GettingStarted::mainImplTriangleWithVBO() {
 		// every shader and render call will now use this program object
 
 		// bind the VAO for this frame
-		glBindVertexArray(VAO);
+		glBindVertexArray(VAOs[0]);
 
 		// actual command to draw the triangle
 		glDrawArrays(
 			GL_TRIANGLES, // the primitive we wish to drawy
 			0, // starting index of the vertex array we'd like to draw
-			3 // how many vertices we want to draw
+			sizeof(vertices1) // how many vertices we want to draw
 		);
+
+		glUseProgram(yellowShaderProgram);
+		glBindVertexArray(VAOs[1]);
+		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices2));
 
 		// check for keyboard/mouse movements, updates window state, calls any callback methods that were registered
 		glfwPollEvents();
@@ -219,8 +243,11 @@ int GettingStarted::mainImplTriangleWithVBO() {
 
 }
 
-
 unsigned int GettingStarted::createBasicShaderProgram() {
+	return createBasicShaderProgram("1.0f, 0.5f, 0.2f, 1.0f");
+}
+
+unsigned int GettingStarted::createBasicShaderProgram(std::string fragColorString) {
 
 	// SAVE VERTEX SHADER TO A STRING
 	// set up a very basic vert shader that takes a vertex and returns it unchanged
@@ -245,13 +272,13 @@ unsigned int GettingStarted::createBasicShaderProgram() {
 
 	// CHECK THAT THE SHADER COMPILES
 	ValidateShader(vertexShader);
-
-	const char* fragmentShaderSource = "#version 330 core\n"
+	std::string stringFragmentShaderSource = "#version 330 core\n"
 		"out vec4 FragColor;\n"
 		"void main()\n"
 		"{\n"
-		"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+		"    FragColor = vec4(" + std::string(fragColorString) + "); \n"
 		"}\0";
+	const char* fragmentShaderSource = stringFragmentShaderSource.c_str();
 
 	// INSTANTIATE FRAGMENT SHADER
 	unsigned int fragmentShader;
