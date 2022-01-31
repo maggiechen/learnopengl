@@ -1,6 +1,5 @@
 #include "GettingStarted.h" // see header file for where we include GLAD and GLFW
 
-
 void GettingStarted::ValidateShader(const unsigned int shaderId)
 {
 	int success;
@@ -19,11 +18,23 @@ void GettingStarted::ValidateShader(const unsigned int shaderId)
 	}
 }
 
-int main()
+
+int main(int argc, char* argv[])
 {
-	GettingStarted g;
+	// This isn't platform safe, but for some reason this VS project doesn't have proper filesystem support despite
+	// being c++17, and the latest boost libs are not compiling properly for me. So I'm just going to manually
+	// handle paths. This is going to be used to get the vertex and fragment shader files, which I've configured
+	// to be copied into the output directory in the LearnOpenGL.vsxproj file.
+	std::string fullPathToExe = argv[0];
+	std::string appPath = fullPathToExe.substr(0, fullPathToExe.find_last_of("\\"));
+	GettingStarted g(appPath);
 	int ret = g.mainImplTriangleWithVBO();
 	return ret;
+}
+
+GettingStarted::GettingStarted(std::string appPath)
+{
+	this->m_appPath = appPath;
 }
 
 int GettingStarted::mainImplTriangleWithVBO() {
@@ -221,7 +232,7 @@ int GettingStarted::mainImplTriangleWithVBO() {
 			sizeof(vertices1) // how many vertices we want to draw
 		);
 
-		glUseProgram(yellowShaderProgram);
+		//glUseProgram(yellowShaderProgram);
 		glBindVertexArray(VAOs[1]);
 		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices2));
 
@@ -244,7 +255,13 @@ int GettingStarted::mainImplTriangleWithVBO() {
 }
 
 unsigned int GettingStarted::createBasicShaderProgram() {
-	return createBasicShaderProgram("1.0f, 0.5f, 0.2f, 1.0f");
+	ShaderLoader shaderLoader;
+	auto vertexPath = m_appPath + "\\vertex.glsl";
+	auto fragmentPath = m_appPath + "\\fragment.glsl";
+	return shaderLoader.createBasicShaderProgram(
+		vertexPath.c_str(),
+		fragmentPath.c_str());
+	//return createBasicShaderProgram("1.0f, 0.5f, 2f, 1.0f");
 }
 
 unsigned int GettingStarted::createBasicShaderProgram(std::string fragColorString) {
