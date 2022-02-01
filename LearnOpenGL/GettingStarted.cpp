@@ -261,7 +261,6 @@ unsigned int GettingStarted::createBasicShaderProgram() {
 	return shaderLoader.createBasicShaderProgram(
 		vertexPath.c_str(),
 		fragmentPath.c_str());
-	//return createBasicShaderProgram("1.0f, 0.5f, 2f, 1.0f");
 }
 
 unsigned int GettingStarted::createBasicShaderProgram(std::string fragColorString) {
@@ -418,6 +417,12 @@ int GettingStarted::mainImplRectangleWithEBO() {
 		glClearColor(0.3f, 0.6f, 0.1f, 1.0f); // set color used when clearing
 		glClear(GL_COLOR_BUFFER_BIT); // clear
 
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // sin oscillation between 0 and 1
+
+		// this thing will return -1 if the uniform is optimized away or you spelt it incorrectly
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO); // bind the VAO that points to the EBO to use its vertex attribute config
 

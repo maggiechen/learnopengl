@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{e2b7169d-39dc-4d02-b6e4-6761e1632037}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\glad.c">
@@ -37,7 +40,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\shaders\simple\fragment.glsl" />
-    <None Include="..\src\shaders\simple\vertex.glsl" />
+    <None Include="..\src\shaders\simple\fragment_with_uniform.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\fragment.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

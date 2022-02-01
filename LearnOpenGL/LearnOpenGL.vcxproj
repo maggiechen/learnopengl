@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment.glsl" />
+    <None Include="..\src\shaders\simple\fragment_with_uniform.glsl" />
     <None Include="..\src\shaders\simple\vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
