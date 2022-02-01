@@ -11,10 +11,10 @@
 // Custom files from this project
 #include "ShaderLoader.h"
 
-class GettingStarted
+class Main
 {
 public:
-	GettingStarted(std::string appPath);
+	Main(std::string appPath);
 	int mainImplTriangleWithVBO();
 	int mainImplRectangleWithEBO();
 	unsigned int createBasicShaderProgram();

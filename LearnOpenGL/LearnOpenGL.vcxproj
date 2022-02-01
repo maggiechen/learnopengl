@@ -152,11 +152,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\glad.c" />
-    <ClCompile Include="GettingStarted.cpp" />
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GettingStarted.h" />
+    <ClInclude Include="Main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ShaderLoader.h" />
   </ItemGroup>

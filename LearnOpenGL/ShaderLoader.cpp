@@ -22,7 +22,7 @@ void ShaderLoader::ValidateShader(const unsigned int shaderId)
 	// all params after that are specific to what the 2nd param was. In this case we need
 	// to pass a ref to an int so that the compile status can be stored there
 	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
-	if (!success)
+	if (success == GL_FALSE)
 	{
 		// Each shader has an info log. To get the log of the shader, call this function
 		// 2nd param is the size of the buffer we want it to write log info to.
@@ -49,8 +49,15 @@ unsigned int ShaderLoader::createBasicShaderProgram(const char* vertShaderPath, 
 	// Recall that using &some_pointer is the same as the type for an array of that pointer
 	glShaderSource(vertexShader, 1, &vertData, NULL);
 
+	// test compile the shader. If your shader is correct, you don't actually need to run this
+	// as OpenGL will compile it at runtime anyway. But if you want to do validation, which we
+	// do here, you do need to call glCompileShader, or glGetShaderiv with GL_COMPILE_STATUS will
+	// say that your shader failed to compile.
+	glCompileShader(vertexShader);
+
 	// CHECK THAT THE SHADER COMPILES
 	ValidateShader(vertexShader);
+
 	std::string fragmentSource;
 	readFile(fragShaderPath, fragmentSource);
 	const char* fragData = fragmentSource.c_str();

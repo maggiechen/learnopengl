@@ -1,6 +1,6 @@
-#include "GettingStarted.h" // see header file for where we include GLAD and GLFW
+#include "Main.h" // see header file for where we include GLAD and GLFW
 
-void GettingStarted::ValidateShader(const unsigned int shaderId)
+void Main::ValidateShader(const unsigned int shaderId)
 {
 	int success;
 	char infoLog[512];
@@ -27,17 +27,17 @@ int main(int argc, char* argv[])
 	// to be copied into the output directory in the LearnOpenGL.vsxproj file.
 	std::string fullPathToExe = argv[0];
 	std::string appPath = fullPathToExe.substr(0, fullPathToExe.find_last_of("\\"));
-	GettingStarted g(appPath);
-	int ret = g.mainImplTriangleWithVBO();
+	Main g(appPath);
+	int ret = g.mainImplRectangleWithEBO();
 	return ret;
 }
 
-GettingStarted::GettingStarted(std::string appPath)
+Main::Main(std::string appPath)
 {
 	this->m_appPath = appPath;
 }
 
-int GettingStarted::mainImplTriangleWithVBO() {
+int Main::mainImplTriangleWithVBO() {
 	// SETUP
 	glfwInit();
 
@@ -217,6 +217,13 @@ int GettingStarted::mainImplTriangleWithVBO() {
 		// this is a "state-using function" that uses a value we just set to do some action
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // sin oscillation between 0 and 1
+
+		// this thing will return -1 if the uniform is optimized away or you spelt it incorrectly
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		std::cout << greenValue << std::endl;
 
 		// ACTIVATE THE PROGRAM
 		glUseProgram(shaderProgram);
@@ -254,7 +261,7 @@ int GettingStarted::mainImplTriangleWithVBO() {
 
 }
 
-unsigned int GettingStarted::createBasicShaderProgram() {
+unsigned int Main::createBasicShaderProgram() {
 	ShaderLoader shaderLoader;
 	auto vertexPath = m_appPath + "\\vertex.glsl";
 	auto fragmentPath = m_appPath + "\\fragment.glsl";
@@ -263,7 +270,7 @@ unsigned int GettingStarted::createBasicShaderProgram() {
 		fragmentPath.c_str());
 }
 
-unsigned int GettingStarted::createBasicShaderProgram(std::string fragColorString) {
+unsigned int Main::createBasicShaderProgram(std::string fragColorString) {
 
 	// SAVE VERTEX SHADER TO A STRING
 	// set up a very basic vert shader that takes a vertex and returns it unchanged
@@ -331,13 +338,13 @@ unsigned int GettingStarted::createBasicShaderProgram(std::string fragColorStrin
 }
 
 // callback for when window is resized by user. The width and height are the new dimensions
-void GettingStarted::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void Main::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 	// tell OpenGL to update the scaling parameters used to convert from normalized screen coords to screen coords
 }
 
-void GettingStarted::processInput(GLFWwindow* window)
+void Main::processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
@@ -351,7 +358,7 @@ void GettingStarted::processInput(GLFWwindow* window)
 /// to specify primitives for those n-gons. Such an example of a more-complex-than-a-triangle primitive is
 /// a rectangle
 /// </summary>
-int GettingStarted::mainImplRectangleWithEBO() {
+int Main::mainImplRectangleWithEBO() {
 	glfwInit(); // setup window
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // OpenGL 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -375,10 +382,11 @@ int GettingStarted::mainImplRectangleWithEBO() {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	float vertices[] = {
-	 0.5f,  0.5f, 0.0f,  // top right
-	 0.5f, -0.5f, 0.0f,  // bottom right
-	-0.5f, -0.5f, 0.0f,  // bottom left
-	-0.5f,  0.5f, 0.0f   // top left 
+	//  vertex positions                    vertex colours
+	 0.5f,  0.5f, 0.0f,  /*top right*/     1.0f, 0.0f, 0.0f,
+	 0.5f, -0.5f, 0.0f,  /*bottom right*/  0.0f, 1.0f, 0.0f,
+	-0.5f, -0.5f, 0.0f,  /*bottom left*/   0.0f, 0.0f, 1.0f,
+	-0.5f,  0.5f, 0.0f,   /*top left*/      0.5f, 0.5f, 0.5f
 	};
 	unsigned int indices[] = {  // note that we start from 0!
 		0, 1, 3,   // first triangle
@@ -407,29 +415,30 @@ int GettingStarted::mainImplRectangleWithEBO() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// the vertex buffer itself remains unchanged, we are just using the element buffer to specify primitives instead
-	// so this call is the same as in mainImplTriangleWithVBO
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// so this call is similar to the one in mainImplTriangleWithVBO
+	// vertex position attribute is still of size 3 (2nd param)
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	// vertex color attribute is also size 3 (2nd param)
+	glVertexAttribPointer(
+		1, // layout pos 1
+		3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+		(void*)(3 * sizeof(float))); // note that the starting position is not 0, since we account for the first vertex
 	glEnableVertexAttribArray(0); // enable the vertex attribute at location 0
-	
+	glEnableVertexAttribArray(1); // enable the vertex attribute at location 1
+
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
 		glClearColor(0.3f, 0.6f, 0.1f, 1.0f); // set color used when clearing
 		glClear(GL_COLOR_BUFFER_BIT); // clear
 
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // sin oscillation between 0 and 1
-
-		// this thing will return -1 if the uniform is optimized away or you spelt it incorrectly
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO); // bind the VAO that points to the EBO to use its vertex attribute config
 
 		// make it draw a wireframe (can revert with GL_FILL instead of GL_LINE afterwards)
 		glPolygonMode(
 			GL_FRONT_AND_BACK, // we want to apply this polygon drawing mode to front and back of triangles
-			GL_LINE // draw with lines, not filled shapes
+			GL_FILL // use GL_LINE to draw with lines, not filled shapes
 		);
 
 		// draw the elements in the buffer bound to GL_ELEMENT_ARRAY_BUFFER
