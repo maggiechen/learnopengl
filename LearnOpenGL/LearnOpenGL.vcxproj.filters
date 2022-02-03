@@ -27,6 +27,9 @@
     <ClCompile Include="ShaderLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -38,6 +41,9 @@
     <ClInclude Include="ShaderLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment_with_uniform.glsl">
@@ -47,6 +53,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\src\shaders\simple\vertex.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\vertex_upside_down.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

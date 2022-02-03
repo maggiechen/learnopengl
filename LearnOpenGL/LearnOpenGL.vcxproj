@@ -153,17 +153,20 @@
   <ItemGroup>
     <ClCompile Include="..\src\glad.c" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment.glsl" />
     <None Include="..\src\shaders\simple\fragment_with_uniform.glsl" />
     <None Include="..\src\shaders\simple\vertex.glsl" />
+    <None Include="..\src\shaders\simple\vertex_upside_down.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\src\shaders\**">

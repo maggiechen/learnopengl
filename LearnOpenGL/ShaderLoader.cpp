@@ -1,5 +1,16 @@
 #include "ShaderLoader.h"
 
+/// <summary>
+/// I wrote this class because I got annoyed at the fact the shaders in the tutorial were just raw strings.
+/// I didn't realize there was a section later on that teaches you to do exactly this. So I guess this is no
+/// longer necessary :facepalm:
+/// 
+/// Still, it was a good exercise in debugging C++ and setting up build steps to copy glsl files to the output directory
+/// Downside of this implementation is it reads the files line by line. It's better to use the official Shader.cpp version
+/// since that one will just read everything at once
+/// </summary>
+/// <param name="path"></param>
+/// <param name="result"></param>
 void ShaderLoader::readFile(const char* path, std::string &result)
 {
 	// input file stream

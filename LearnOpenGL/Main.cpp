@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	std::string fullPathToExe = argv[0];
 	std::string appPath = fullPathToExe.substr(0, fullPathToExe.find_last_of("\\"));
 	Main g(appPath);
-	int ret = g.mainImplRectangleWithEBO();
+	int ret = g.mainImplTriangleWithVBO();
 	return ret;
 }
 
@@ -130,9 +130,11 @@ int Main::mainImplTriangleWithVBO() {
 	// other options are GL_DYNAMIC_DRAW, where data will change and is used by GPU many times
 	// and GL_STREAM_DRAW, where it doesn't change and is used only a few times
 
-	// orange program
-	unsigned int shaderProgram = createBasicShaderProgram();
-	unsigned int yellowShaderProgram = createBasicShaderProgram("1.0f, 1.5f, 0.2f, 1.0f");
+	auto vertPath = m_appPath + "\\vertex.glsl";
+	auto fragPath = m_appPath + "\\fragment.glsl";
+	Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
+	
+	// unsigned int yellowShaderProgram = createBasicShaderProgram("1.0f, 1.5f, 0.2f, 1.0f");
 
 	// BOOKMARK: "Linking Vertex Attributes"
 	// recall: vertex attribute = data about one particular vertex
@@ -220,13 +222,12 @@ int Main::mainImplTriangleWithVBO() {
 		float timeValue = glfwGetTime();
 		float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // sin oscillation between 0 and 1
 
-		// this thing will return -1 if the uniform is optimized away or you spelt it incorrectly
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+		shader.setFloat2("offset", 0.25f, 0.f);
+		// shader.setFloat4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 		std::cout << greenValue << std::endl;
 
 		// ACTIVATE THE PROGRAM
-		glUseProgram(shaderProgram);
+		shader.use();
 		// every shader and render call will now use this program object
 
 		// bind the VAO for this frame
@@ -393,7 +394,9 @@ int Main::mainImplRectangleWithEBO() {
 		1, 2, 3    // second triangle
 	};
 
-	unsigned int shaderProgram = createBasicShaderProgram();
+	auto vertPath = m_appPath + "\\vertex.glsl";
+	auto fragPath = m_appPath + "\\fragment.glsl";
+	Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
 
 	// initialize a VAO
 	// VAOs also store element buffers. If after binding this VAO, GL_ELEMENT_ARRAY_BUFFER is bound, 
@@ -432,7 +435,7 @@ int Main::mainImplRectangleWithEBO() {
 		glClearColor(0.3f, 0.6f, 0.1f, 1.0f); // set color used when clearing
 		glClear(GL_COLOR_BUFFER_BIT); // clear
 
-		glUseProgram(shaderProgram);
+		shader.use();
 		glBindVertexArray(VAO); // bind the VAO that points to the EBO to use its vertex attribute config
 
 		// make it draw a wireframe (can revert with GL_FILL instead of GL_LINE afterwards)

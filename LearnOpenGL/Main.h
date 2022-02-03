@@ -10,6 +10,7 @@
 
 // Custom files from this project
 #include "ShaderLoader.h"
+#include "Shader.h"
 
 class Main
 {
