@@ -17,11 +17,17 @@ ApplicationRunner::ApplicationRunner(std::string appPath)
 	m_appPath = appPath;
 }
 
+/// <summary>
+/// Change this method to switch between programs
+/// </summary>
+/// <returns>The "main" function return code</returns>
 int ApplicationRunner::RunMain()
 {
-	TrianglesAndShaders g(this);
-	int ret = g.mainImplTriangleWithVBO();
+	/*TrianglesAndShaders g(this);
+	int ret = g.mainImplTriangleWithVBO();*/
 
+	Texturing t(this);
+	int ret = t.RunTexturing();
 	return ret;
 }
 

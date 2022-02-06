@@ -1,7 +1,9 @@
 #pragma once
 
 #include "IApplicationParamsProvider.h"
+#include "Texturing.h"
 #include "TrianglesAndShaders.h"
+
 class ApplicationRunner: IApplicationParamsProvider
 {
 public:

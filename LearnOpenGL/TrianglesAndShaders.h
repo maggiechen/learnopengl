@@ -11,6 +11,8 @@
 #include "ShaderLoader.h"
 #include "Shader.h"
 #include "IApplicationParamsProvider.h"
+#include "OpenGLUtilities.h"
+#include "GLFWUtilities.h"
 class TrianglesAndShaders
 {
 public:
@@ -27,5 +29,5 @@ public:
 private:
 	const int m_windowWidth = 800;
 	const int m_windowHeight = 600;
-	IApplicationParamsProvider* m_appRunner;
+	IApplicationParamsProvider* m_appParamsProvider;
 };

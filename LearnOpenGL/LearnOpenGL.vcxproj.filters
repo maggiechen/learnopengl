@@ -33,6 +33,15 @@
     <ClCompile Include="TrianglesAndShaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Texturing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLUtilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLFWUtilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -47,13 +56,22 @@
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StbImageEnabler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TrianglesAndShaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IApplicationParamsProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texturing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StbImageEnabler.cpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GLFWUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,6 +86,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\src\shaders\simple\vertex_upside_down.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\fragment_textured.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\vertex_textured.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

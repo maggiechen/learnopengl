@@ -152,24 +152,32 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\glad.c" />
+    <ClCompile Include="GLFWUtilities.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenGLUtilities.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="Texturing.cpp" />
     <ClCompile Include="TrianglesAndShaders.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GLFWUtilities.h" />
     <ClInclude Include="IApplicationParamsProvider.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="OpenGLUtilities.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
-    <ClInclude Include="StbImageEnabler.h" />
+    <ClInclude Include="StbImageEnabler.cpp" />
+    <ClInclude Include="Texturing.h" />
     <ClInclude Include="TrianglesAndShaders.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment.glsl" />
+    <None Include="..\src\shaders\simple\fragment_textured.glsl" />
     <None Include="..\src\shaders\simple\fragment_with_uniform.glsl" />
     <None Include="..\src\shaders\simple\vertex.glsl" />
+    <None Include="..\src\shaders\simple\vertex_textured.glsl" />
     <None Include="..\src\shaders\simple\vertex_upside_down.glsl" />
   </ItemGroup>
   <ItemGroup>

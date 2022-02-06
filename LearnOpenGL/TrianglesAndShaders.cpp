@@ -20,7 +20,7 @@ void TrianglesAndShaders::ValidateShader(const unsigned int shaderId)
 
 TrianglesAndShaders::TrianglesAndShaders(IApplicationParamsProvider* appRunner)
 {
-	this->m_appRunner = appRunner;
+	this->m_appParamsProvider = appRunner;
 }
 
 int TrianglesAndShaders::mainImplTriangleWithVBO() {
@@ -66,7 +66,7 @@ int TrianglesAndShaders::mainImplTriangleWithVBO() {
 	// set a callback for when the window is resized. This is a function we define
 	// this is also called the first time window is displayed
 	// * for retina displays, the actual width/height will be higher than the original input values to glViewport
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, OpenGLUtilities::framebuffer_size_callback);
 
 	// single triangle
 	/*float vertices[] = {
@@ -116,8 +116,8 @@ int TrianglesAndShaders::mainImplTriangleWithVBO() {
 	// other options are GL_DYNAMIC_DRAW, where data will change and is used by GPU many times
 	// and GL_STREAM_DRAW, where it doesn't change and is used only a few times
 
-	auto vertPath = m_appRunner->GetAppPath() + "\\vertex.glsl";
-	auto fragPath = m_appRunner->GetAppPath() + "\\fragment.glsl";
+	auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex.glsl";
+	auto fragPath = m_appParamsProvider->GetAppPath() + "\\fragment.glsl";
 	Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
 
 	// unsigned int yellowShaderProgram = createBasicShaderProgram("1.0f, 1.5f, 0.2f, 1.0f");
@@ -190,7 +190,7 @@ int TrianglesAndShaders::mainImplTriangleWithVBO() {
 	// RENDER LOOP
 	while (!glfwWindowShouldClose(window)) // result will be true if window was closed
 	{
-		processInput(window);
+		GLFWUtilities::closeWindowIfEscapePressed(window);
 
 		// rendering commands here
 		// ...
@@ -250,8 +250,8 @@ int TrianglesAndShaders::mainImplTriangleWithVBO() {
 
 unsigned int TrianglesAndShaders::createBasicShaderProgram() {
 	ShaderLoader shaderLoader;
-	auto vertexPath = m_appRunner->GetAppPath() + "\\vertex.glsl";
-	auto fragmentPath = m_appRunner->GetAppPath() + "\\fragment.glsl";
+	auto vertexPath = m_appParamsProvider->GetAppPath() + "\\vertex.glsl";
+	auto fragmentPath = m_appParamsProvider->GetAppPath() + "\\fragment.glsl";
 	return shaderLoader.createBasicShaderProgram(
 		vertexPath.c_str(),
 		fragmentPath.c_str());
@@ -324,20 +324,6 @@ unsigned int TrianglesAndShaders::createBasicShaderProgram(std::string fragColor
 
 }
 
-// callback for when window is resized by user. The width and height are the new dimensions
-void TrianglesAndShaders::framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-	// tell OpenGL to update the scaling parameters used to convert from normalized screen coords to screen coords
-}
-
-void TrianglesAndShaders::processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-}
 
 /// <summary>
 /// Specifying every triangle means specifying duplicated vertices if you just want to draw n-gons.
@@ -366,7 +352,7 @@ int TrianglesAndShaders::mainImplRectangleWithEBO() {
 
 	glViewport(0, 0, m_windowWidth, m_windowHeight);
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, OpenGLUtilities::framebuffer_size_callback);
 
 	float vertices[] = {
 		//  vertex positions                    vertex colours
@@ -380,8 +366,8 @@ int TrianglesAndShaders::mainImplRectangleWithEBO() {
 		1, 2, 3    // second triangle
 	};
 
-	auto vertPath = m_appRunner->GetAppPath() + "\\vertex.glsl";
-	auto fragPath = m_appRunner->GetAppPath() + "\\fragment.glsl";
+	auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex.glsl";
+	auto fragPath = m_appParamsProvider->GetAppPath() + "\\fragment.glsl";
 	Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
 
 	// initialize a VAO
@@ -417,7 +403,7 @@ int TrianglesAndShaders::mainImplRectangleWithEBO() {
 
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+		GLFWUtilities::closeWindowIfEscapePressed(window);
 		glClearColor(0.3f, 0.6f, 0.1f, 1.0f); // set color used when clearing
 		glClear(GL_COLOR_BUFFER_BIT); // clear
 
