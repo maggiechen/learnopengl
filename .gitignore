@@ -11,6 +11,9 @@
 *.userosscache
 *.sln.docstates
 
+# Visual Studio autosaves
+enc_temp_folder/*
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
