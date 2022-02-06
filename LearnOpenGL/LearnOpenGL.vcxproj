@@ -155,12 +155,16 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="TrianglesAndShaders.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IApplicationParamsProvider.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderLoader.h" />
+    <ClInclude Include="StbImageEnabler.h" />
+    <ClInclude Include="TrianglesAndShaders.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment.glsl" />
@@ -172,6 +176,14 @@
     <Content Include="..\src\shaders\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\res\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\res\container.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
