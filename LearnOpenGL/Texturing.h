@@ -11,15 +11,15 @@
 class Texturing
 {
 private:
-	static const int m_windowWidth = 400;
+	static const int m_windowWidth = 800;
 	static const int m_windowHeight = 600;
 	IApplicationParamsProvider* m_appParamsProvider;
     float m_vertices[32] = {
         // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
         -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left 
     };
 
     // elements
@@ -28,10 +28,10 @@ private:
         1, 2, 3    // second triangle
     };
 
-    unsigned int CreateTexture();
-    unsigned int CreateRectangle();
+    void CreateTexture(std::string imageFileName, GLenum format, GLuint& textureID, GLint wrapMode);
+    void CreateRectangle(GLuint& VAO);
     int SetupWindow(GLFWwindow*& window);
-    int ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture);
+    int ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture1, unsigned int texture2);
 
 public:
 	Texturing(IApplicationParamsProvider* appParamsProvider);

@@ -14,9 +14,13 @@ int Texturing::RunTexturing()
     {
         return windowResult;
     }
-
-    unsigned int texture = CreateTexture();
-    unsigned int VAO = CreateRectangle();
+    
+    stbi_set_flip_vertically_on_load(true);
+    unsigned int texture1, texture2;
+    CreateTexture("container.jpg", GL_RGB, texture1, GL_CLAMP_TO_EDGE);
+    CreateTexture("awesomeface.png", GL_RGBA, texture2, GL_REPEAT);
+    unsigned int VAO;
+    CreateRectangle(VAO);
 
     auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured.glsl";
     auto fragPath = m_appParamsProvider->GetAppPath() + "\\fragment_textured.glsl";
@@ -27,27 +31,35 @@ int Texturing::RunTexturing()
     // mention the uniform's name. The location of a texture is also called a "texture unit"
     // The default texture unit is 0, so the default active texture doesn't have to assign a location
     // (Not all GPUs support this, though)
-    //GLint texUniformLoc = glGetUniformLocation(shader.ID, "ourTexture");
-    //glUniform1i(texUniformLoc, texture);
+    
+    // since we have two texture, we will have to set the uniforms for them
+    // NOTE: the numbers used in the 2nd param should match the ones you will call later on with
+    // "glActiveTexture(GL_TEXTURE<number>);", and NOT the textureIDs you get from the CreateTexture calls.
+    // This is essentially saying to the pipeline, when the shaders ask for these texture sampler uniforms,
+    // grab them from the available Textures 0 and 1 (OpenGL supports up to 16). It is the glBindTexture
+    // call in the render loop that attaches the actual textureIDs to these "active" textures.
+    shader.use(); // VERY IMPORTANT: you must USE the program before you can set any uniforms, or it will not do anything!!
+    shader.setInt("texture1", 0);
+    shader.setInt("texture2", 1);
 
-    return ExecuteWindow(window, shader, VAO, texture);
+    return ExecuteWindow(window, shader, VAO, texture1, texture2);
 }
 
-unsigned int Texturing::CreateTexture()
+void Texturing::CreateTexture(std::string imageFileName, GLenum format, GLuint& textureID, GLint wrapMode)
 {
     int width, height, colorChannelCount;
 
     // stbi = STB_image. STB = Sean T. Barrett, author of the library
     // image is a bunch of 8 bit (char) values. 6 for rgb, 2 for alpha
-    unsigned char* data = stbi_load((m_appParamsProvider->GetAppPath() + "\\container.jpg").c_str(), &width, &height, &colorChannelCount, 0);
+    unsigned char* data = stbi_load((m_appParamsProvider->GetAppPath() + "\\" + imageFileName).c_str(), &width, &height, &colorChannelCount, 0);
     // *Skimming the stb implementation, I think the last parameter is for specifying how
     // many channels you want to retrieve. Setting it to 0 just returns all 4 channels
 
     // create a texture in OpenGL's state, bind it to GL_TEXTURE_2D
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
     // actually generate the texture from the loaded container.jpg data
     glTexImage2D(
         // specifies to generate a texture on the currently bound texture of target GL_TEXTURE_2D
@@ -62,7 +74,7 @@ unsigned int Texturing::CreateTexture()
         // this param should always be 0. It's a legacy thing
         0,
         // source format
-        GL_RGB,
+        format,
         // source per-pixel type
         GL_UNSIGNED_BYTE,
         // finally, the image data itself
@@ -73,13 +85,11 @@ unsigned int Texturing::CreateTexture()
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data); // good practice to clean shit up!
-    return texture;
 }
 
-unsigned int Texturing::CreateRectangle()
+void Texturing::CreateRectangle(GLuint& VAO)
 {
     // array object to store raw vertices, element buffers, and vertex attribute settings
-    unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -102,7 +112,6 @@ unsigned int Texturing::CreateRectangle()
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
-    return VAO;
 }
 
 int Texturing::SetupWindow(GLFWwindow*& window)
@@ -133,21 +142,22 @@ int Texturing::SetupWindow(GLFWwindow*& window)
     return 0;
 }
 
-int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture) {
+int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture1, unsigned int texture2) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     while (!glfwWindowShouldClose(window))
     {
         GLFWUtilities::closeWindowIfEscapePressed(window);
         glClearColor(0.3f, 0.6f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
         shader.use();
-
-        //glActiveTexture(GL_TEXTURE0); // set the texture unit to 0 first
-        // this is only necessary on some implementations. By default, the active texture
-        // is 0, so it should just work
-
-        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDrawElements(GL_TRIANGLES, sizeof(m_indices), GL_UNSIGNED_INT, 0);
         glfwPollEvents();
 
