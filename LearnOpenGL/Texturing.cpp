@@ -41,6 +41,7 @@ int Texturing::RunTexturing()
     shader.use(); // VERY IMPORTANT: you must USE the program before you can set any uniforms, or it will not do anything!!
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
+    shader.setFloat("interp", m_interp);
 
     return ExecuteWindow(window, shader, VAO, texture1, texture2);
 }
@@ -60,6 +61,8 @@ void Texturing::CreateTexture(std::string imageFileName, GLenum format, GLuint& 
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     // actually generate the texture from the loaded container.jpg data
     glTexImage2D(
         // specifies to generate a texture on the currently bound texture of target GL_TEXTURE_2D
@@ -148,6 +151,8 @@ int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VA
     while (!glfwWindowShouldClose(window))
     {
         GLFWUtilities::closeWindowIfEscapePressed(window);
+        updateInterpAmount(window, shader);
+
         glClearColor(0.3f, 0.6f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -165,4 +170,25 @@ int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VA
     }
     glfwTerminate();
     return 0;
+}
+
+/// <summary>
+/// The shader program clamps the value already but I want to do it here too
+/// so that I don't have to wait a long time if I pressed up/down for too long before the
+/// image changes
+/// </summary>
+void Texturing::updateInterpAmount(GLFWwindow* window, Shader& shader)
+{
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        m_interp -= m_fadeSpeed;
+        m_interp = std::clamp(m_interp, 0.f, 1.f);
+        shader.setFloat("interp", m_interp);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        m_interp += m_fadeSpeed;
+        shader.setFloat("interp", m_interp);
+        m_interp = std::clamp(m_interp, 0.f, 1.f);
+    }
 }
