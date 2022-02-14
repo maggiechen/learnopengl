@@ -23,11 +23,18 @@ ApplicationRunner::ApplicationRunner(std::string appPath)
 /// <returns>The "main" function return code</returns>
 int ApplicationRunner::RunMain()
 {
-	/*TrianglesAndShaders g(this);
-	int ret = g.mainImplTriangleWithVBO();*/
+	// TRIANGLES AND SHADERS
+	// TrianglesAndShaders g(this);
+	// int ret = g.mainImplTriangleWithVBO();
 
+	// TEXTURES
 	Texturing t(this);
 	int ret = t.RunTexturing();
+
+	//Transforms t;
+	//t.SomeVectorShenanigans();
+	//int ret = 0;
+
 	return ret;
 }
 

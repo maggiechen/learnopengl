@@ -42,6 +42,9 @@
     <ClCompile Include="GLFWUtilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Transforms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -74,6 +77,9 @@
     <ClInclude Include="GLFWUtilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\simple\fragment_with_uniform.glsl">
@@ -92,6 +98,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\src\shaders\simple\vertex_textured.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\src\shaders\simple\vertex_textured_transformed.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include "IApplicationParamsProvider.h"
 #include "Texturing.h"
 #include "TrianglesAndShaders.h"
+#include "Transforms.h"
 
 class ApplicationRunner: IApplicationParamsProvider
 {

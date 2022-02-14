@@ -16,5 +16,6 @@ public:
 	void setFloat(const std::string& name, float value) const;
 	void setFloat2(const std::string& name, float value1, float value2);
 	void setFloat4(const std::string& name, float value1, float value2, float value3, float value4);
+	void setMat4(const std::string& name, const GLfloat* matrix);
 };
 

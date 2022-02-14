@@ -159,6 +159,7 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="Texturing.cpp" />
+    <ClCompile Include="Transforms.cpp" />
     <ClCompile Include="TrianglesAndShaders.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +172,7 @@
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="StbImageEnabler.cpp" />
     <ClInclude Include="Texturing.h" />
+    <ClInclude Include="Transforms.h" />
     <ClInclude Include="TrianglesAndShaders.h" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +181,7 @@
     <None Include="..\src\shaders\simple\fragment_with_uniform.glsl" />
     <None Include="..\src\shaders\simple\vertex.glsl" />
     <None Include="..\src\shaders\simple\vertex_textured.glsl" />
+    <None Include="..\src\shaders\simple\vertex_textured_transformed.glsl" />
     <None Include="..\src\shaders\simple\vertex_upside_down.glsl" />
   </ItemGroup>
   <ItemGroup>

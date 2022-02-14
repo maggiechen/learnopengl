@@ -1,5 +1,8 @@
 #include "Texturing.h"
 #include "StbImageEnabler.cpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 Texturing::Texturing(IApplicationParamsProvider* appParamsProvider)
 {
@@ -15,14 +18,22 @@ int Texturing::RunTexturing()
         return windowResult;
     }
     
+    // images are defined w/ 0 along the y axis at the top, but 
+    // OpenGL expects 0 to be at the bottom of the image. So we need to tell STB we want
+    // images to be loaded "flipped":
     stbi_set_flip_vertically_on_load(true);
+
     unsigned int texture1, texture2;
     CreateTexture("container.jpg", GL_RGB, texture1, GL_CLAMP_TO_EDGE);
     CreateTexture("awesomeface.png", GL_RGBA, texture2, GL_REPEAT);
     unsigned int VAO;
     CreateRectangle(VAO);
 
-    auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured.glsl";
+    unsigned int VAO2;
+    CreateRectangle(VAO2);
+
+    // auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured.glsl";
+    auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured_transformed.glsl";
     auto fragPath = m_appParamsProvider->GetAppPath() + "\\fragment_textured.glsl";
     Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
 
@@ -43,7 +54,25 @@ int Texturing::RunTexturing()
     shader.setInt("texture2", 1);
     shader.setFloat("interp", m_interp);
 
-    return ExecuteWindow(window, shader, VAO, texture1, texture2);
+    Shader shader2 = *(new Shader(vertPath.c_str(), fragPath.c_str()));
+    shader2.use();
+    shader2.setInt("texture1", 0);
+    shader2.setInt("texture2", 1);
+    shader2.setFloat("interp", m_interp);
+
+    return ExecuteWindow(window, shader, shader2, VAO, VAO2, texture1, texture2);
+}
+
+void Texturing::GetTransform(glm::mat4& transform) {
+    transform = glm::translate(transform, glm::vec3(0.5, -0.5, 0.5));
+    transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0, 0, 1));
+}
+
+void Texturing::GetTransform2(glm::mat4& transform) {
+    transform = glm::translate(transform, glm::vec3(-0.5, 0.5, 0.5));
+    float scaleScalar = 0.5 * sin((float)glfwGetTime()) + 0.5;
+    std::cout << scaleScalar << std::endl;
+    transform = glm::scale(transform, glm::vec3(scaleScalar, scaleScalar, scaleScalar));
 }
 
 void Texturing::CreateTexture(std::string imageFileName, GLenum format, GLuint& textureID, GLint wrapMode)
@@ -145,7 +174,7 @@ int Texturing::SetupWindow(GLFWwindow*& window)
     return 0;
 }
 
-int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture1, unsigned int texture2) {
+int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, Shader& shader2, unsigned int VAO, unsigned int VAO2, unsigned int texture1, unsigned int texture2) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     while (!glfwWindowShouldClose(window))
@@ -162,8 +191,21 @@ int Texturing::ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VA
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         shader.use();
+
+        glm::mat4 transform = glm::mat4(1.0);
+        GetTransform(transform);
+        shader.setMat4("transform", glm::value_ptr(transform));
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, sizeof(m_indices), GL_UNSIGNED_INT, 0);
+
+        shader2.use();
+        glm::mat4 transform2 = glm::mat4(1.0);
+        GetTransform2(transform2);
+        shader2.setMat4("transform", glm::value_ptr(transform2));
+        glBindVertexArray(VAO2);
+        glDrawElements(GL_TRIANGLES, sizeof(m_indices), GL_UNSIGNED_INT, 0);
+
         glfwPollEvents();
 
         glfwSwapBuffers(window);

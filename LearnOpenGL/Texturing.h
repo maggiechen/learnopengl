@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// this gets us the forward declared glm::mat4 type, which we use below
+#include <glm/fwd.hpp>
+
 #include <iostream>
 #include <algorithm>
 
@@ -9,6 +12,7 @@
 #include "IApplicationParamsProvider.h"
 #include "OpenGLUtilities.h"
 #include "Shader.h"
+
 class Texturing
 {
 private:
@@ -34,12 +38,14 @@ private:
     void CreateTexture(std::string imageFileName, GLenum format, GLuint& textureID, GLint wrapMode);
     void CreateRectangle(GLuint& VAO);
     int SetupWindow(GLFWwindow*& window);
-    int ExecuteWindow(GLFWwindow* window, Shader& shader, unsigned int VAO, unsigned int texture1, unsigned int texture2);
+    int ExecuteWindow(GLFWwindow* window, Shader& shader, Shader& shader2, unsigned int VAO, unsigned int VAO2, unsigned int texture1, unsigned int texture2);
 
     void updateInterpAmount(GLFWwindow* window, Shader& shader);
 
 public:
 	Texturing(IApplicationParamsProvider* appParamsProvider);
 	int RunTexturing();
+    void GetTransform(glm::mat4& transform);
+    void GetTransform2(glm::mat4& transform);
 };
 
