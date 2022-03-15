@@ -1,5 +1,4 @@
 #include "Texturing.h"
-#include "StbImageEnabler.cpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,7 +8,7 @@ Texturing::Texturing(IApplicationParamsProvider* appParamsProvider)
     m_appParamsProvider = appParamsProvider;
 }
 
-int Texturing::RunTexturing()
+int Texturing::Run()
 {
     GLFWwindow* window;
     int windowResult = SetupWindow(window);
@@ -129,12 +128,15 @@ void Texturing::CreateRectangle(GLuint& VAO)
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_STATIC_DRAW);
+    size_t size;
+    const float* vertices = GetVertices(size);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 
     // element buffer
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_indices), m_indices, GL_STATIC_DRAW);
 
     GLsizei stride = 8 * sizeof(float);
@@ -233,4 +235,9 @@ void Texturing::updateInterpAmount(GLFWwindow* window, Shader& shader)
         shader.setFloat("interp", m_interp);
         m_interp = std::clamp(m_interp, 0.f, 1.f);
     }
+}
+
+const float* Texturing::GetVertices(size_t& size) {
+    size = sizeof(m_vertices);
+    return m_vertices;
 }

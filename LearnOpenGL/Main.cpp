@@ -1,4 +1,6 @@
 #include "Main.h"
+#include "StbImageEnabler.cpp" // just need to include it once in a cpp file. Then the rest of the usages
+							   // of stbi should just require including the header.
 
 int main(int argc, char* argv[])
 {
@@ -28,8 +30,12 @@ int ApplicationRunner::RunMain()
 	// int ret = g.mainImplTriangleWithVBO();
 
 	// TEXTURES
-	Texturing t(this);
-	int ret = t.RunTexturing();
+	//Texturing t(this);
+	//int ret = t.Run();
+
+	// COORDS
+	CoordinateSystems app(this);
+	int ret = app.Run();
 
 	//Transforms t;
 	//t.SomeVectorShenanigans();
