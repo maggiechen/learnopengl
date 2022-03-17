@@ -8,6 +8,16 @@ Texturing::Texturing(IApplicationParamsProvider* appParamsProvider)
     m_appParamsProvider = appParamsProvider;
 }
 
+const char* Texturing::GetVertexShaderPath()
+{
+    return m_vertexShaderPath;
+}
+
+const char* Texturing::GetFragmentShaderPath()
+{
+    return m_fragmentShaderPath;
+}
+
 int Texturing::Run()
 {
     GLFWwindow* window;
@@ -32,8 +42,8 @@ int Texturing::Run()
     CreateRectangle(VAO2);
 
     // auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured.glsl";
-    auto vertPath = m_appParamsProvider->GetAppPath() + "\\vertex_textured_transformed.glsl";
-    auto fragPath = m_appParamsProvider->GetAppPath() + "\\fragment_textured.glsl";
+    auto vertPath = m_appParamsProvider->GetAppPath() + GetVertexShaderPath();
+    auto fragPath = m_appParamsProvider->GetAppPath() + GetFragmentShaderPath();
     Shader shader = *(new Shader(vertPath.c_str(), fragPath.c_str()));
 
     // This is how you would set texture uniform, but if your shader uses only one,
@@ -69,7 +79,7 @@ void Texturing::GetTransform(glm::mat4& transform) {
 
 void Texturing::GetTransform2(glm::mat4& transform) {
     transform = glm::translate(transform, glm::vec3(-0.5, 0.5, 0.5));
-    float scaleScalar = 0.5 * sin((float)glfwGetTime()) + 0.5;
+    float scaleScalar = 0.5f * sin((float)glfwGetTime()) + 0.5f;
     std::cout << scaleScalar << std::endl;
     transform = glm::scale(transform, glm::vec3(scaleScalar, scaleScalar, scaleScalar));
 }

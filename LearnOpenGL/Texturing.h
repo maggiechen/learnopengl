@@ -16,6 +16,8 @@
 class Texturing
 {
 private:
+    static constexpr const char* m_vertexShaderPath = "\\vertex_textured_transformed.glsl";
+    static constexpr const char* m_fragmentShaderPath = "\\fragment_textured.glsl";
 	static constexpr int m_windowWidth = 800;
 	static constexpr int m_windowHeight = 600;
     float m_interp = 0.5f;
@@ -39,13 +41,16 @@ protected:
 
 private:
     void CreateTexture(std::string imageFileName, GLenum format, GLuint& textureID, GLint wrapMode);
-    void CreateRectangle(GLuint& VAO);
     int SetupWindow(GLFWwindow*& window);
 
     void updateInterpAmount(GLFWwindow* window, Shader& shader);
 protected:
     virtual int ExecuteWindow(GLFWwindow* window, Shader& shader, Shader& shader2, unsigned int VAO, unsigned int VAO2, unsigned int texture1, unsigned int texture2);
     virtual const float* GetVertices(size_t& size);
+    virtual const char* GetVertexShaderPath();
+    virtual const char* GetFragmentShaderPath();
+    virtual void CreateRectangle(GLuint& VAO);
+
 public:
 	Texturing(IApplicationParamsProvider* appParamsProvider);
 	virtual int Run();
