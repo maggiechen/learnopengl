@@ -12,8 +12,11 @@ int CoordinateSystems::ExecuteWindow(GLFWwindow* window, Shader& shader, Shader&
     glEnable(GL_DEPTH_TEST); // z is important. It doesn't check z buffer by default.
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        m_deltaTime = currentFrame - m_lastFrame;
+        m_lastFrame = currentFrame;
         GLFWUtilities::closeWindowIfEscapePressed(window);
-
+        CoordinateSystems::processInput(window);
         glClearColor(0.3f, 0.6f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear both the color and z buffers, or the previous frame's z will be there.
 
@@ -30,9 +33,20 @@ int CoordinateSystems::ExecuteWindow(GLFWwindow* window, Shader& shader, Shader&
         //model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
         // VIEW MATRIX
-        glm::mat4 view = glm::mat4(1.0);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        view = glm::rotate(view, (float)glfwGetTime() * glm::radians(2.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        //const float radius = 10.0f; // set the camera position to circle around the origin
+        //float camX = sin(glfwGetTime()) * radius;
+        //float camZ = cos(glfwGetTime()) * radius;
+
+        glm::mat4 view;
+        //view = glm::lookAt(
+        //    glm::vec3(camX, 0.0, camZ), // camera position
+        //    glm::vec3(0.0, 0.0, 0.0), // origin (target to look at)
+        //    glm::vec3(0.0, 1.0, 0.0)); // world up vector (y axis is up
+
+        /*view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::rotate(view, (float)glfwGetTime() * glm::radians(2.0f), glm::vec3(0.5f, 1.0f, 0.0f));*/
+
+        view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 
         // PERSPECTIVE PROJECTION MATRIX
         glm::mat4 projection;
@@ -116,4 +130,17 @@ void CoordinateSystems::CreateRectangle(GLuint& VAO)
     //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
     //glEnableVertexAttribArray(0);
     //glEnableVertexAttribArray(1);
+}
+
+void CoordinateSystems::processInput(GLFWwindow *window) {
+    float cameraSpeed = 2.5f * m_deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        m_cameraPos += cameraSpeed * m_cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        m_cameraPos -= cameraSpeed * m_cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
+
 }

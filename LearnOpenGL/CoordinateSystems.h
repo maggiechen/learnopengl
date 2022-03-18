@@ -20,6 +20,13 @@ class CoordinateSystems: public Texturing
 private:
     static constexpr const char* m_overriddenVertexShader = "\\vertex_textured_coordinate_system.glsl";
     static constexpr const char* m_overriddenFragmentShader = "\\fragment_textured_coordinate_system.glsl";
+    glm::vec3 m_cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f); // start position
+    glm::vec3 m_cameraFront = glm::vec3(0.0,  0.0, -1.0f); // looking down local negative z axis
+    glm::vec3 m_cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f); // world up vec
+    float m_deltaTime = 0.0f;
+    float m_lastFrame = 0.0f;
+
+    void processInput(GLFWwindow* window);
 
 protected:
     const float m_verticesCube[180] = {
