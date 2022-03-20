@@ -26,7 +26,12 @@ private:
     float m_deltaTime = 0.0f;
     float m_lastFrame = 0.0f;
 
-    void processInput(GLFWwindow* window);
+    static bool firstMouse;
+    static float yaw;
+    static float pitch;
+    static float lastX, lastY;
+    static float fov;
+    static constexpr float m_sensitivity = 0.1f;
 
 protected:
     const float m_verticesCube[180] = {
@@ -94,6 +99,11 @@ protected:
         -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
     };
 
+private:
+    void processInput(GLFWwindow* window);
+    glm::mat4 lookAt(glm::vec3 cameraPosition, glm::vec3 lookDirection, glm::vec3 worldUpVector);
+    static void mouse_callback(GLFWwindow* window, double xpos, double ypos); // callback function for OpenGL
+    static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 protected:
     virtual int ExecuteWindow(GLFWwindow* window, Shader& shader, Shader& shader2, unsigned int VAO, unsigned int VAO2, unsigned int texture1, unsigned int texture2);
     virtual const float* GetVertices(size_t& size);

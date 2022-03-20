@@ -1,18 +1,38 @@
 #include "CoordinateSystems.h"
 
+// static non-const class members must be defined outside of the class definition as well. This is done in the cpp bc they're considered an implementation detail.
+float CoordinateSystems::yaw;
+float CoordinateSystems::pitch;
+float CoordinateSystems::lastX, CoordinateSystems::lastY;
+float CoordinateSystems::fov;
+bool CoordinateSystems::firstMouse;
 
 CoordinateSystems::CoordinateSystems(IApplicationParamsProvider* appParamsProvider) : Texturing(appParamsProvider) {
+    lastY = 300;
+    lastX = 400;
+    yaw = -90.0f;
+    fov = 45.0f;
+    firstMouse = true;
 }
 
 int CoordinateSystems::ExecuteWindow(GLFWwindow* window, Shader& shader, Shader& shader2, unsigned int VAO, unsigned int VAO2, unsigned int texture1, unsigned int texture2)
 {
+    // It's actually a graphics API setting to hide the cursor when you're in a window. This is used
+    // by fps games and what not. Very cool!
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    
+    // setup a callback for when the mouse moves
+    glfwSetCursorPosCallback(window, CoordinateSystems::mouse_callback);
+
+    // setup callback for when mouse scrolls. Sets up zoom, which changes the fov passed to the perspective projection matrix
+    // if this was isometric this wouldn't work, instead you'd need to change the left/right/top/bottom of the orthogonal projection matrix
+    glfwSetScrollCallback(window, CoordinateSystems::scroll_callback);
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST); // z is important. It doesn't check z buffer by default.
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = glfwGetTime();
+        float currentFrame = (float) glfwGetTime();
         m_deltaTime = currentFrame - m_lastFrame;
         m_lastFrame = currentFrame;
         GLFWUtilities::closeWindowIfEscapePressed(window);
@@ -46,13 +66,30 @@ int CoordinateSystems::ExecuteWindow(GLFWwindow* window, Shader& shader, Shader&
         /*view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         view = glm::rotate(view, (float)glfwGetTime() * glm::radians(2.0f), glm::vec3(0.5f, 1.0f, 0.0f));*/
 
-        view = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
+        // clamp the pitch because if the look direction is parallel to the world up vector, the lookAt method won't be able to calculate the local x axis
+        // and you get gimbal locked
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        // I hate pitch and yaw operations a lot
+        // But I explained this with some pretty pictures and verbose math here: http://disq.us/p/2nvh4fc
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+
+
+        view = CoordinateSystems::lookAt(m_cameraPos, direction, m_cameraUp);
+
 
         // PERSPECTIVE PROJECTION MATRIX
         glm::mat4 projection;
 
         // fov, aspect ratio, near, far
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        projection = glm::perspective(fov, 800.0f / 600.0f, 0.1f, 100.0f);
 
         //shader.setMat4("model", glm::value_ptr(model));
         shader.setMat4("view", glm::value_ptr(view));
@@ -134,13 +171,74 @@ void CoordinateSystems::CreateRectangle(GLuint& VAO)
 
 void CoordinateSystems::processInput(GLFWwindow *window) {
     float cameraSpeed = 2.5f * m_deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        m_cameraPos += cameraSpeed * m_cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        m_cameraPos -= cameraSpeed * m_cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
 
+    // this makes it so you can't fly. only can move horizontally
+    glm::vec3 projectedCameraFront = glm::normalize(glm::vec3(m_cameraFront.x, 0.0f, m_cameraFront.z));
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        m_cameraPos += cameraSpeed * projectedCameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        m_cameraPos -= cameraSpeed * projectedCameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        m_cameraPos -= glm::normalize(glm::cross(projectedCameraFront, m_cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        m_cameraPos += glm::normalize(glm::cross(projectedCameraFront, m_cameraUp)) * cameraSpeed;
+
+}
+
+glm::mat4 CoordinateSystems::lookAt(glm::vec3 cameraPosition, glm::vec3 lookDirection, glm::vec3 worldUpVector)
+{
+    glm::vec3 zAxis = -glm::normalize(lookDirection);
+    glm::vec3 xAxis = glm::normalize(glm::cross(worldUpVector, zAxis));
+    glm::vec3 yAxis = glm::normalize(glm::cross(xAxis, zAxis));
+    float matrix[16] = {
+        xAxis.x, xAxis.y, xAxis.z, 0.0f,
+        yAxis.x, yAxis.y, yAxis.z, 0.0f,
+        zAxis.x, zAxis.y, zAxis.z, 0.0f,
+        0.0f,    0.0f,    0.0f,    1.0f
+    };
+
+    glm::mat4 transposeRotMatrix = glm::mat4(1.0f);
+    transposeRotMatrix[0][0] = xAxis.x; // First column, first row
+    transposeRotMatrix[1][0] = xAxis.y;
+    transposeRotMatrix[2][0] = xAxis.z;
+    transposeRotMatrix[0][1] = yAxis.x; // First column, second row
+    transposeRotMatrix[1][1] = yAxis.y;
+    transposeRotMatrix[2][1] = yAxis.z;
+    transposeRotMatrix[0][2] = zAxis.x; // First column, third row
+    transposeRotMatrix[1][2] = zAxis.y;
+    transposeRotMatrix[2][2] = zAxis.z;
+
+    glm::mat4 translateMatrix = glm::mat4(1.0);
+
+    translateMatrix = glm::translate(translateMatrix, -cameraPosition);
+    return transposeRotMatrix * translateMatrix;
+
+}
+
+void CoordinateSystems::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    // prevent big mouse jump when mouse first enters window
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    float xOffset = xpos - lastX;
+    float yOffset = ypos - lastY; // negate this in an fps if player wants inverted up/down
+    lastX = xpos;
+    lastY = ypos;
+    yaw += xOffset * m_sensitivity;
+    pitch += yOffset * m_sensitivity;
+}
+
+
+void CoordinateSystems::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    fov -= (float)yoffset * m_sensitivity;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 45.0f)
+        fov = 45.0f;
 }
